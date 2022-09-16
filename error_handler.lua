@@ -18,7 +18,7 @@ local handler = {
 
 function handler:fatal(errCode, msg)
   local errCode = errCode or 1
-  error(
+  io.stderr:write(
     "\n\n"..self.errorCodes[errCode]..":\n"..msg
     .."\n"..self.fatalFlavor[math.random(#self.fatalFlavor)].."\n"
   )
