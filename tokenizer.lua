@@ -19,7 +19,7 @@ local comm = require("common")
 local tokenizer = {
   tokens = {
     keyword = {
-      literal = {"if", "while", "for", "return", "local"},
+      literal = {"if", "while", "for", "return", "local", "var", "notation"},
       pattern = {}
     },
     separator = {
@@ -68,6 +68,22 @@ local tokenizer = {
   }
 }
 
+function tokenizer.splitToLines(str)
+  local lines = {}
+  for line in str:gmatch("[^\r\n]+") do
+    table.insert(lines, line)
+  end
+  return lines
+end
 
+function tokenizer.tokenizeLine(str)
+  local tokens = {}
+  local inComment = false
+  for tokenType, matchSet in pairs(tokenizer.tokens) do
+    for matchType, matchString in pairs(matchSet) do
+      
+    end
+  end
+end
 
 return tokenizer

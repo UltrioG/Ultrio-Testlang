@@ -2,12 +2,14 @@
 
 /* fizzbuzz */
 
+var zero = 0.0+0.0i
+
 for {i=1.0+0.0i}{i <= 100.0+0.0i}{i++}{
   local str = ""
-  if i%3==0 {
+  if i%(3.0+0.0i)==zero {
     str += "Fizz"
   }
-  if i%5==0 {
+  if i%(5.0+0.0i)==zero {
     str += "Buzz"
   }
   if str == "" {
