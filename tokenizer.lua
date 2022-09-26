@@ -19,7 +19,7 @@ local comm = require("common")
 local tokenizer = {
   tokens = {
     keyword = {
-      literal = {"if", "while", "for", "return", "local", "var", "notation"},
+      literal = {"if", "while", "for", "return", "local", "var"},
       pattern = {}
     },
     separator = {
@@ -62,28 +62,61 @@ local tokenizer = {
     identifier = {
       literal = {},
       pattern = {
-        "[^%w_]([%a_][%w_]-)[^%w_]"
+        "[^%w_]([%a_][%w_]-)[^%w_]",
+        "^([%a_][%w_]-)[^%w_]",
+        "[^%w_]([%a_][%w_]-)$",
+        "^([%a_][%w_]-)$"
       }
     }
   }
 }
 
-function tokenizer.splitToLines(str)
-  local lines = {}
-  for line in str:gmatch("[^\r\n]+") do
-    table.insert(lines, line)
-  end
-  return lines
+function tokenizer.removeComments(str)
+  local ret, rep = str:gsub("/%*.-%*/", "")
+  return ret
 end
 
-function tokenizer.tokenizeLine(str)
+function tokenizer.isSpecialWord(word)
+  for _, v in ipairs(tokenizer.tokens.keyword.literal) do
+    if v == word then return true end
+  end
+  for _, v in ipairs(tokenizer.tokens.literal.literal) do
+    if v == word then return true end
+  end
+  for _, v in ipairs(tokenizer.tokens.literal.pattern) do
+    if word:find(v) then return true end
+  end
+end
+
+function tokenizer.tokenizeLine(line, lineCount)
+  local proxyLine = tokenizer.removeComments(line)
+  local oldProxyLine = ""
   local tokens = {}
-  local inComment = false
-  for tokenType, matchSet in pairs(tokenizer.tokens) do
-    for matchType, matchString in pairs(matchSet) do
-      
+  
+  for tokenType, matchGroup in pairs(tokenizer.tokens) do
+    for matchType, matchSet in pairs(matchGroup) do
+      for _, matchString in pairs(matchSet) do
+        -- TODO: Fix annoying string.find indexing bug
+        local first = 0
+        local last = 0
+        local match = ""
+        while true do
+          first, last, match = proxyLine:find(matchString, last+1, matchType == "literal")
+          if not (first and match) then break end
+          if tokenType == "identifier" and tokenizer.isSpecialWord(match) then break end
+          table.insert(
+            tokens, {first, last, lineCount, tokenType, match or proxyLine:sub(first, last)}
+          )
+        end
+      end
     end
   end
+  
+  table.sort(tokens, function(a, b)
+      return a[1] < b[1]
+    end)
+  
+  return tokens
 end
 
 return tokenizer

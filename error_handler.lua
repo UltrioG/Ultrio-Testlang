@@ -24,8 +24,8 @@ function handler:fatal(errCode, msg)
   )
 end
 
-function handler:fatalIfNil(v, errCode, msg)
-  if v == nil then self:fatal(errCode, msg) end
+function handler:assert(v, errCode, msg)
+  if not v then self:fatal(errCode, msg) end
 end
 
 return handler
