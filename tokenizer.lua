@@ -107,7 +107,6 @@ function tokenizer.tokenizeLine(line, lineCount, inComment)
   for tokenType, matchGroup in pairs(tokenizer.tokens) do
     for matchType, matchSet in pairs(matchGroup) do
       for _, matchString in pairs(matchSet) do
-        -- TODO: Fix annoying string.find indexing bug
         local litMatch = matchType == "literal"
         local first = 0
         local last = 0
@@ -126,6 +125,7 @@ function tokenizer.tokenizeLine(line, lineCount, inComment)
   end
   
   table.sort(tokens, function(a, b)
+      -- TODO: Account for tokens in different positions on the same line
       return a[1] < b[1]
     end)
   
