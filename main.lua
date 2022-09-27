@@ -17,9 +17,13 @@ for line in handle:lines() do
 end
 com.printTable(fileLines)
 local tokens = {}
+local tokenSet, inComment = nil, false
 for lineCount, lineContent in ipairs(fileLines) do
-  for i, v in ipairs(tok.tokenizeLine(lineContent, lineCount)) do
-    table.insert(tokens, v)
+  tokenSet, inComment = tok.tokenizeLine(lineContent, lineCount, inComment)
+  if not inComment then
+    for i, v in ipairs(tokenSet) do
+      table.insert(tokens, v)
+    end
   end
 end
 local simplifiedTokens = {}
@@ -28,7 +32,6 @@ for _, v in ipairs(tokens) do
   table.insert(simplifiedTokens, v[4])
   table.insert(tokenValues, v[5])
 end
-com.printTable(simplifiedTokens)
 com.printTable(tokenValues)
 
 -- Parsing

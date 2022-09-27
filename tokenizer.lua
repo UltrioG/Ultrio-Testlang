@@ -49,7 +49,7 @@ local tokenizer = {
       },
       pattern = {
         "(%-?%d+%.%d+%s*[%+%-]%s*%d+%.%d+i)", "(%-?%d+%.%d+i%s*[%+%-]%s*%d+%.%d+)",
-        "(%b'')", '(%b"")',
+        "('[^']-')", '("[^"]-")',
         -- TODO: Errors on unclosed string with "'[^']*$" and '"[^"]*$'
       }
     },
@@ -62,10 +62,11 @@ local tokenizer = {
     identifier = {
       literal = {},
       pattern = {
-        "[^%w_]([%a_][%w_]-)[^%w_]",
-        "^([%a_][%w_]-)[^%w_]",
-        "[^%w_]([%a_][%w_]-)$",
-        "^([%a_][%w_]-)$"
+        "[^%w_\"']([%a_][%w_]-)[^%w_\"']",
+        "^([%a_][%w_]-)[^%w_\"']",
+        "[^%w_\"']([%a_][%w_]-)$",
+        "^([%a_][%w_]-)$",
+        "[^%w_\"']([%w_])[^%w_\"']"
       }
     }
   }
@@ -73,7 +74,14 @@ local tokenizer = {
 
 function tokenizer.removeComments(str)
   local ret, rep = str:gsub("/%*.-%*/", "")
-  return ret
+  return ret, rep > 0
+end
+
+function tokenizer.hasUnclosedComment(str)
+  return string.match(str, "/%*.-$") ~= nil
+end
+function tokenizer.hasCommentClose(str)
+return string.match(str, "^.-%*/") ~= nil
 end
 
 function tokenizer.isSpecialWord(word)
@@ -88,21 +96,26 @@ function tokenizer.isSpecialWord(word)
   end
 end
 
-function tokenizer.tokenizeLine(line, lineCount)
-  local proxyLine = tokenizer.removeComments(line)
-  local oldProxyLine = ""
+function tokenizer.tokenizeLine(line, lineCount, inComment)
+  if inComment and not tokenizer.hasCommentClose(line) then return {}, true end
+  local proxyLine, changed = tokenizer.removeComments(line)
+  if tokenizer.hasUnclosedComment(line) and not tokenizer.hasCommentClose(line) then
+    return {}, true
+  end
   local tokens = {}
   
   for tokenType, matchGroup in pairs(tokenizer.tokens) do
     for matchType, matchSet in pairs(matchGroup) do
       for _, matchString in pairs(matchSet) do
         -- TODO: Fix annoying string.find indexing bug
+        local litMatch = matchType == "literal"
         local first = 0
         local last = 0
         local match = ""
         while true do
-          first, last, match = proxyLine:find(matchString, last+1, matchType == "literal")
-          if not (first and match) then break end
+          first, last, match = proxyLine:find(matchString, last+1, litMatch)
+          if not first then break end
+          if litMatch then match = proxyLine:sub(first, last) end
           if tokenType == "identifier" and tokenizer.isSpecialWord(match) then break end
           table.insert(
             tokens, {first, last, lineCount, tokenType, match or proxyLine:sub(first, last)}
@@ -116,7 +129,7 @@ function tokenizer.tokenizeLine(line, lineCount)
       return a[1] < b[1]
     end)
   
-  return tokens
+  return tokens, false
 end
 
 return tokenizer

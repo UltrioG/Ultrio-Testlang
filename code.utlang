@@ -1,24 +1,13 @@
-/* My first UTL program */
+/*
+  Fizzbuzz program written in what is possibly the shittiest language ever
 
-/* fizzbuzz */
+  For testing parsing and execution.
+*/
 
-var zero = 0.0+0.0i
+for {var i = 1}{i <= 100}{i++} {
+  local var output = ""
+  if (i%3==0) {output += "Fizz"}
+  if (i%5==0) {output += "Buzz"}
 
-for {var i=1.0+0.0i}{i <= 100.0+0.0i}{i++}{
-  local str = ""
-  if i%(3.0+0.0i)==zero {
-    str += "Fizz"
-  }
-  if i%(5.0+0.0i)==zero {
-    str += "Buzz"
-  }
-  if str == "" {
-    str = tonumber(i)
-  }
+  print(output)
 }
-
-Sussy
-
-Baka
-
-

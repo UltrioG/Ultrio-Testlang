@@ -1,38 +1,37 @@
 local parser = {
   LOCAL_VAR_DEF = {
-    {{"keyword", "local"}, {"keyword", "var"}, {"identifier"}, {"operator", "="}, {"VAL"}},
+    {{"keyword", "local"}, {"keyword", "var"}, {"identifier"}, {"operator", "="}, {"EXP"}},
   },
   VAR_DEF = {
-    {{"keyword", "var"}, {"identifier"}, {"operator", "="}, {"VAL"}},
+    {{"keyword", "var"}, {"identifier"}, {"operator", "="}, {"EXP"}},
     {{"keyword", "var"}, {"identifier"}},
   },
   FOR = {
     {{"keyword", "for"}, {"EXP"}, {"EXP"}, {"EXP"}, {"EXP"}}
   },
   IF = {
-    {{"keyword", "if"}, {"VAL"}, {"EXP"}}
+    {{"keyword", "if"}, {"EXP"}, {"EXP"}}
   },
   WHILE = {
-    {{"keyword", "while"}, {"VAL"}, {"EXP"}}
+    {{"keyword", "while"}, {"EXP"}, {"EXP"}}
   },
   RETURN = {
-    {{"keyword", "return"}, {"VAL"}}
+    {{"keyword", "return"}, {"EXP"}}
   },
   INCDEC = {
     {{"identifier"}, {"operator", "++"}},
     {{"identifier"}, {"operator", "--"}}
   },
   DELTA = {
-    {{"identifier"}, {"operator"}, {"VAL"}},
+    {{"identifier"}, {"operator"}, {"EXP"}},
   },
   EXP = {
     {{"separator", "{"}, {"EXP"}, {"separator", "}"}},
     {{"FOR"}},
-    {{"VAR_DEF"}}
-  },
-  VAL = {
+    {{"VAR_DEF"}},
+
     {{"literal"}},
-    {{"identifier"}}
+    {{"identifier"}},
   },
 }
 
