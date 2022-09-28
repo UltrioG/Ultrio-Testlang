@@ -32,7 +32,7 @@ for _, v in ipairs(tokens) do
   table.insert(simplifiedTokens, v[4])
   table.insert(tokenValues, v[5])
 end
-com.printTable(tokenValues)
+com.printTable(tokens)
 
 -- Parsing
 

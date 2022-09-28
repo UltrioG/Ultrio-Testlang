@@ -4,8 +4,10 @@ Language design:
   There is next to no syntactical sugar.
 
   Datatypes:
-    complex: Complex numbers, the only type of numbers.
-      Notation: 0.0+0.0i; -0.0+0.0i; 0.0-0.0i; -0.0-0.0i
+    number:
+    Originally complex, it was too terrible even for me,
+    so I changed it to real numbers instead
+      Notation: 0, 1, 23, 4.56, .78
     string: A basic string of characters. All strings are multiline.
       Notation: 's'; "s"
     boolean: True or false values.
@@ -48,7 +50,7 @@ local tokenizer = {
         "null",
       },
       pattern = {
-        "(%-?%d+%.%d+%s*[%+%-]%s*%d+%.%d+i)", "(%-?%d+%.%d+i%s*[%+%-]%s*%d+%.%d+)",
+        "%D(%d+)%D", "%D(%d*%.%d+)%D",
         "('[^']-')", '("[^"]-")',
         -- TODO: Errors on unclosed string with "'[^']*$" and '"[^"]*$'
       }
@@ -66,7 +68,7 @@ local tokenizer = {
         "^([%a_][%w_]-)[^%w_\"']",
         "[^%w_\"']([%a_][%w_]-)$",
         "^([%a_][%w_]-)$",
-        "[^%w_\"']([%w_])[^%w_\"']"
+        "[^%w_\"']([%a_])[^%w_\"']"
       }
     }
   }
@@ -114,10 +116,16 @@ function tokenizer.tokenizeLine(line, lineCount, inComment)
         while true do
           first, last, match = proxyLine:find(matchString, last+1, litMatch)
           if not first then break end
+          if match and not litMatch then
+            first, last = proxyLine:find(match, first, true)
+          end
           if litMatch then match = proxyLine:sub(first, last) end
           if tokenType == "identifier" and tokenizer.isSpecialWord(match) then break end
+          print(proxyLine:sub(first, last))
           table.insert(
-            tokens, {first, last, lineCount, tokenType, match or proxyLine:sub(first, last)}
+            tokens, {
+              first, last, lineCount, tokenType, match or proxyLine:sub(first, last)
+            }
           )
         end
       end
