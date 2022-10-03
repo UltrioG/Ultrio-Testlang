@@ -1,5 +1,5 @@
 /*
-  Fizzbuzz program written in what is possibly the shittiest language ever
+  Fizzbuzz program written in what is possibly the worst language ever
 
   For testing parsing and execution.
 */
@@ -11,6 +11,5 @@ for {var i = 1}{i <= 100}{i++} {
 
   print(output)
 }
-
 
 Test at end

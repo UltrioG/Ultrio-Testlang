@@ -61,4 +61,10 @@ function mod.literal_pattern(text)
   return text:gsub("([^%w])", "%%%1")
 end
 
+function mod.cloneTable(t)
+  local out = {}
+  for k, v in pairs(t) do out[k] = v end
+  return out
+end
+
 return mod

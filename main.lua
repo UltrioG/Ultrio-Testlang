@@ -4,10 +4,10 @@ REMEMBER TO CHECK THE GITHUB PAGE!!!
 
 --]]
 local tok = require("tokenizer")
+local par = require("parser")
 local err = require("error_handler")
 local com = require("common")
 
--- Tokenization
 local fileName = --[[io.read("*l")]] "code.utlang"
 local handle = assert(io.open(fileName, "r"))
 
@@ -15,7 +15,9 @@ local fileLines = {}
 for line in handle:lines() do
   table.insert(fileLines, line)
 end
-com.printTable(fileLines)
+
+-- Tokenization
+
 local tokens = {}
 local tokenSet, inComment = nil, false
 for lineCount, lineContent in ipairs(fileLines) do
@@ -32,8 +34,8 @@ for _, v in ipairs(tokens) do
   table.insert(simplifiedTokens, v[4])
   table.insert(tokenValues, v[5])
 end
-com.printTable(tokens)
 
 -- Parsing
+local expressions = par.parseTokens(tokens)
 
 -- Runtime

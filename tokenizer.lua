@@ -71,8 +71,14 @@ local tokenizer = {
         "[^%w_\"']([%a_])[^%w_\"']"
       }
     }
-  }
+  },
+  tokenTypes = {}    -- This table will be automatically filled
 }
+
+tokenizer.tokenTypes = {}
+for k in pairs(tokenizer.tokens) do
+  table.insert(tokenizer.tokenTypes, k)
+end
 
 function tokenizer.removeComments(str)
   local ret, rep = str:gsub("/%*.-%*/", "")
@@ -121,7 +127,6 @@ function tokenizer.tokenizeLine(line, lineCount, inComment)
           end
           if litMatch then match = proxyLine:sub(first, last) end
           if tokenType == "identifier" and tokenizer.isSpecialWord(match) then break end
-          print(proxyLine:sub(first, last))
           table.insert(
             tokens, {
               first, last, lineCount, tokenType, match or proxyLine:sub(first, last)
@@ -138,6 +143,16 @@ function tokenizer.tokenizeLine(line, lineCount, inComment)
     end)
   
   return tokens, false
+end
+
+function tokenizer.keyifyToken(token)
+  return {
+    first = token[1],
+    last = token[2],
+    line = token[3],
+    tokenType = token[4],
+    tokenContent = token[5]
+  }
 end
 
 return tokenizer
