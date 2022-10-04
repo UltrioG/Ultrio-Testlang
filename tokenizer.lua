@@ -21,11 +21,11 @@ local comm = require("common")
 local tokenizer = {
   tokens = {
     keyword = {
-      literal = {"if", "while", "for", "return", "local", "var"},
+      literal = {"if", "while", "for", "return", "var"},
       pattern = {}
     },
     separator = {
-      literal = {"{", "}", "[", "]", "(", ")"},
+      literal = {"{", "}", "[", "]", "(", ")", ","},
       pattern = {}
     },
     operator = {
