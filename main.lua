@@ -38,10 +38,14 @@ end
 -- Parsing
 local expressions = par.parseTokens(tokens)
 
-print(par.tokensFollowGrammar({
-    tok.tokenize([[
-        for {var i = 2}
-    ]])
-}))
+print(
+  par.tokensFollowGrammar(
+    tok.tokenizeLine([[
+        for {var i = 2} {j} {i++} {var x}
+    ]]),
+    1,
+    {{"keyword", "for"}, {"EXP"}, {"EVAL"}, {"EXP"}, {"EXP"}}
+  )
+)
 
 -- Runtime

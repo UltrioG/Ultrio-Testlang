@@ -70,7 +70,7 @@ local tokenizer = {
         "^([%a_][%w_]-)$",
         "[^%w_\"']([%a_])[^%w_\"']"
       }
-    }
+    },
   },
   tokenTypes = {}    -- This table will be automatically filled
 }
