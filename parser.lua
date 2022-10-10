@@ -44,7 +44,7 @@ function parser.tokensFollowGrammar(tokens, startIndex, grammar)
   success, stringedTokens, success2, stringedGrammar = nil, nil, nil, nil
   for i, currentGrammarObject in ipairs(grammar) do
     local currentToken = tokens[startIndex+i-1]
-  
+    
     local GOTerminal = com.indexOf(tok.tokenTypes, currentGrammarObject[1]) ~= nil
     if GOTerminal then
       follows = follows and currentToken[4] == currentGrammarObject[1]

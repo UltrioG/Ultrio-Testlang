@@ -10,6 +10,7 @@ function mod.indexOf(array, value)
 end
 
 function mod.printTable(t, layer)
+  local t = mod.cloneTable(t)
   local layer = layer or 0
   io.write("\n")
   for _ = 1, layer do io.write("\t") end
@@ -33,6 +34,7 @@ function mod.printTable(t, layer)
 end
 
 function mod.stringTable(t, layer)
+  local t = mod.cloneTable(t)
   local layer = layer or 0
   local str = ""
   str = str..("\n")
@@ -44,7 +46,7 @@ function mod.stringTable(t, layer)
     str = str..(tostring(k))
     str = str..(" = ")
     if type(v) == "table" then
-      mod.printTable(v, layer + 1)
+      str = str..mod.stringTable(v, layer + 1)
     elseif type(v) == "string" then
       str = str..('"'..v..'"')
     else
@@ -54,6 +56,7 @@ function mod.stringTable(t, layer)
   end
   for _ = 1, layer do str = str..("\t") end
   str = str..("}\n")
+  return str
 end
 
 function mod.literal_pattern(text)
