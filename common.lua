@@ -70,4 +70,12 @@ function mod.cloneTable(t)
   return out
 end
 
+function mod.subTable(t)
+  local newT = {}
+  for i = 2, #t do
+    table.insert(newT, t[i])
+  end
+  return newT
+end
+
 return mod

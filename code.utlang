@@ -13,3 +13,16 @@ for {var i = 1}{i <= 100}{i++} {
 }
 
 Test at end
+
+
+
+
+for {var i = 2} {j} {i++} {var x}
+
+characters
+f o r   { v a r   i = 2 }   { j } { i + + } { v a r   x }
+
+tokens
+for { var i = 2 } { j } { i ++ } { var x }
+
+grammar
