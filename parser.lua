@@ -33,8 +33,48 @@ local parser = {
 }
 
 function parser.tokensFollowGrammar(tokens, startIndex, grammar)
+  print(
+    ("%s @ %i for %s"):format(
+      com.stringTable(tokens, nil, "Tokens"),
+      startIndex,
+      com.stringTable(grammar, nil, "Grammar")
+    )
+  )
+  
   local tokens = com.cloneTable(tokens)
   local follows = true
+  local index = startIndex
+
+  while tokens[index] do
+    local currentToken = tokens[index]
+    local tokenType = currentToken[4]
+    local tokenContent = currentToken[5]
+
+    local currentPhrase = grammar[index]
+    if not currentPhrase then return follows end
+    local grammarType = currentPhrase[1]
+    local grammarContent = currentPhrase[2]
+
+    local PhraseTerminal = com.indexOf(tok.tokenTypes, grammarType) ~= nil
+
+    if PhraseTerminal then
+      follows = follows and tokenType == grammarType
+      if grammarContent then
+        follows = follows and tokenContent == grammarContent
+      end
+      if not follows then return follows end
+    else
+      for subexpressionType, subexpressionGrammar in pairs(parser.grammar) do
+        local subfollows = parser.tokensFollowGrammar(
+          com.subTable(tokens, index, #tokens-index+1),
+          1,
+          subexpressionGrammar
+        )
+      end
+    end
+
+    index = index + 1
+  end
   
   return follows
 end
