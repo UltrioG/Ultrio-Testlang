@@ -33,45 +33,49 @@ local parser = {
 }
 
 function parser.tokensFollowGrammar(tokens, startIndex, grammar)
-  local tokens = com.cloneTable(tokens)
-  local follows = true
-  local success, stringedTokens = pcall(function() return com.stringTable(tokens) end)
-  local success2, stringedGrammar = pcall(function() return com.stringTable(grammar) end)
-  err:assert(tokens and startIndex and grammar, 2, 
-    ("Missing elements in grammar check. ({%s, %s, %s})"):format(
-      success and stringedTokens or "NoTable",
-      tostring(startIndex),
-      success2 and stringedGrammar or "NoTable"
+  print(
+    ("%s @ %i for %s"):format(
+      com.stringTable(tokens, nil, "Tokens"),
+      startIndex,
+      com.stringTable(grammar, nil, "Grammar")
     )
   )
-  success, stringedTokens, success2, stringedGrammar = nil, nil, nil, nil
-  for i, currentGrammarObject in ipairs(grammar) do
-    local currentToken = tokens[startIndex+i-1]
-    print(("Index: %i"):format(startIndex+i-1))
-    com.printTable(currentGrammarObject)
-    print(("CGO: %s"):format(tostring(currentGrammarObject[1])))
-    local GOTerminal = com.indexOf(tok.tokenTypes, currentGrammarObject[1]) ~= nil
-    if GOTerminal then
-      follows = follows and currentToken[4] == currentGrammarObject[1]
-      print(currentToken[4],currentGrammarObject[1], currentToken[5],currentGrammarObject[2])
-      if currentGrammarObject[2] ~= nil then
-        follows = follows and currentToken[5] == currentGrammarObject[2]
+  
+  local tokens = com.cloneTable(tokens)
+  local follows = true
+  local index = startIndex
+
+  while tokens[index] do
+    local currentToken = tokens[index]
+    local tokenType = currentToken[4]
+    local tokenContent = currentToken[5]
+
+    local currentPhrase = grammar[index]
+    if not currentPhrase then return follows end
+    local grammarType = currentPhrase[1]
+    local grammarContent = currentPhrase[2]
+
+    local PhraseTerminal = com.indexOf(tok.tokenTypes, grammarType) ~= nil
+
+    if PhraseTerminal then
+      follows = follows and tokenType == grammarType
+      if grammarContent then
+        follows = follows and tokenContent == grammarContent
       end
-      print(("Follows: %s"):format(tostring(follows)))
-      if not follows then return false end
+      if not follows then return follows end
     else
-      local foundMatchingGrammar = false
-      for _, GOGrammar in ipairs(parser["grammar"][currentGrammarObject[1]]) do
-        local subtokensFollow = parser.tokensFollowGrammar(tokens, startIndex+i-1, GOGrammar)
-        print(("Subtokens follow: %s"):format(tostring(subtokensFollow)))
-        if subtokensFollow then
-          foundMatchingGrammar = true break
-        end
+      for subexpressionType, subexpressionGrammar in pairs(parser.grammar) do
+        local subfollows = parser.tokensFollowGrammar(
+          com.subTable(tokens, index, #tokens-index+1),
+          1,
+          subexpressionGrammar
+        )
       end
-      follows = follows and foundMatchingGrammar
-      if not follows then return false end
     end
+
+    index = index + 1
   end
+  
   return follows
 end
 

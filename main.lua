@@ -38,10 +38,6 @@ end
 -- Parsing
 local expressions = par.parseTokens(tokens)
 
-print("Tokens: "..com.stringTable(tok.tokenizeLine([[
-        for {var i = 2} {j} {i++} {var x}
-    ]])).."\n\n\n\n\n")
-
 print(
   par.tokensFollowGrammar(
     tok.tokenizeLine([[
