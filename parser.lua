@@ -56,24 +56,6 @@ function parser.tokensFollowGrammar(tokens, startIndex, grammar)
     local grammarContent = currentPhrase[2]
 
     local PhraseTerminal = com.indexOf(tok.tokenTypes, grammarType) ~= nil
-
-    if PhraseTerminal then
-      follows = follows and tokenType == grammarType
-      if grammarContent then
-        follows = follows and tokenContent == grammarContent
-      end
-      if not follows then return follows end
-    else
-      for subexpressionType, subexpressionGrammar in pairs(parser.grammar) do
-        local subfollows = parser.tokensFollowGrammar(
-          com.subTable(tokens, index, #tokens-index+1),
-          1,
-          subexpressionGrammar
-        )
-      end
-    end
-
-    index = index + 1
   end
   
   return follows
