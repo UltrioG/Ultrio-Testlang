@@ -80,4 +80,15 @@ function mod.subTable(t, i, j)
   return newT
 end
 
+function mod.tableEquality(t1, t2)
+  for k, v1 in pairs(t1) do
+    if not t2[k] then return false end
+    if type(v1) == "table" and type(t2[k]) == "table" then
+      if not mod.tableEquality(v1, t2[k]) then return false end
+    end
+    if v1 ~= t2[k] then return false end
+  end
+  return true
+end
+
 return mod

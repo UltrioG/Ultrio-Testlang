@@ -11,8 +11,8 @@ local parser = {
       {{"EVAL"}, {"separator", ","}, {"EVAL"}}
     },
     WRAPPED_EVAL = {
-      {"separator", "{"}, {"EVAL"}, {"separator", "}"},
-      {"separator", "("}, {"EVAL"}, {"separator", ")"}
+      {{"separator", "{"}, {"EVAL"}, {"separator", "}"}},
+      {{"separator", "("}, {"EVAL"}, {"separator", ")"}}
     },
     VAR_DECLARE = {
       {{"keyword", "var"}, {"identifier"}, {"operator", "="}, {"EVAL"}},
@@ -57,6 +57,7 @@ function parser.tokensFollowGrammar(tokens, startIndex, grammar)
 
     local PhraseTerminal = com.indexOf(tok.tokenTypes, grammarType) ~= nil
 
+    print(index)
     if PhraseTerminal then
       follows = follows and tokenType == grammarType
       if grammarContent then
@@ -65,11 +66,15 @@ function parser.tokensFollowGrammar(tokens, startIndex, grammar)
       if not follows then return follows end
     else
       for subexpressionType, subexpressionGrammar in pairs(parser.grammar) do
-        local subfollows = parser.tokensFollowGrammar(
-          com.subTable(tokens, index, #tokens-index+1),
-          1,
-          subexpressionGrammar
-        )
+        if not com.tableEquality(subexpressionGrammar, grammar) then
+          local subtokens = com.subTable(tokens, index, #tokens-index+1)
+          com.printTable(subtokens, nil, "Subtokens")
+          local subfollows = parser.tokensFollowGrammar(
+            subtokens,
+            1,
+            subexpressionGrammar
+          )
+        end
       end
     end
 
