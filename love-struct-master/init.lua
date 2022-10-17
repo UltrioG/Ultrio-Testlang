@@ -2,13 +2,13 @@
 -- init.lua
 ---------------------------------------------------------------------------------------------------
 -- Returns the classes in a single table
-local path = ({...})[1] .. "." 
+local path = ({...})[1]:sub(1, -5)
 local struct = {}
 struct.grid = require(path .. "grid")
-struct.queue = require(path .."queue")
+-- struct.queue = require(path .."queue")
 struct.stack = require(path .. "stack")
 struct.tree = require(path .. "tree")
-struct.bag = require(path .. "bag")
+-- struct.bag = require(path .. "bag")
 
 return struct
 
