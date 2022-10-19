@@ -25,12 +25,19 @@ local parser = {
       {{"identifier"}, {"separator", "("}, {"EVAL"}, {"separator", ")"}}
     },
     EXP = {
-      {{"separator", "{"}, {"EXP"}, {"separator", "}"}},
-      {{"FOR"}},
       {{"VAR_DECLARE"}},
+      {{"FOR"}},
+      {{"separator", "{"}, {"EXP"}, {"separator", "}"}},
     }
   }
 }
+
+function parser.tokenFollowsTerminalObject(token, terminal)
+	-- Checks whether a token matches a terminal object.
+	local result = token[4] == terminal[1]
+	if terminal[2] then result = result and terminal[2] == token[5] end
+	return result
+end
 
 function parser.tokensFollowGrammar(tokens, startIndex, grammar)
   print(
@@ -42,46 +49,34 @@ function parser.tokensFollowGrammar(tokens, startIndex, grammar)
   )
   
   local tokens = com.cloneTable(tokens)
-  local follows = true
-  local index = startIndex
+  local grammarIndex = 1
+	local tokenIndex = startIndex
 
-  while tokens[index] do
-    local currentToken = tokens[index]
-    local tokenType = currentToken[4]
-    local tokenContent = currentToken[5]
+	while grammar[grammarIndex] do
+		local grammarUnit = grammar[grammarIndex]
+		-- double negation casts non-nil-nor-false to true
+		local isTerminal = not not com.indexOf(tok.tokenTypes, grammarUnit[1])
+		local TokenIndexIncrement = 1
 
-    local currentPhrase = grammar[index]
-    if not currentPhrase then return follows end
-    local grammarType = currentPhrase[1]
-    local grammarContent = currentPhrase[2]
-
-    local PhraseTerminal = com.indexOf(tok.tokenTypes, grammarType) ~= nil
-
-    print(index)
-    if PhraseTerminal then
-      follows = follows and tokenType == grammarType
-      if grammarContent then
-        follows = follows and tokenContent == grammarContent
-      end
-      if not follows then return follows end
-    else
-      for subexpressionType, subexpressionGrammar in pairs(parser.grammar) do
-        if not com.tableEquality(subexpressionGrammar, grammar) then
-          local subtokens = com.subTable(tokens, index, #tokens-index+1)
-          com.printTable(subtokens, nil, "Subtokens")
-          local subfollows = parser.tokensFollowGrammar(
-            subtokens,
-            1,
-            subexpressionGrammar
-          )
-        end
-      end
-    end
-
-    index = index + 1
-  end
-  
-  return follows
+		if isTerminal then
+			local tokenFollows = parser.tokenFollowsTerminalObject(tokens[tokenIndex], grammar[grammarIndex])
+			if not tokenFollows then return false end
+		else
+			local subTokens = com.subTable(tokens, tokenIndex, #tokens)
+			local nonTerminalSubtokensLength
+			for grammarRuleType, grammarRuleSet in pairs(parser.grammar) do
+				for grammarRuleIndex, grammarRule in pairs(grammarRuleSet) do
+					local L = parser.tokensFollowGrammar(subTokens, 1, grammarRule)
+					nonTerminalSubtokensLength = L
+					if L then break end
+				end
+				if nonTerminalSubtokensLength then break end
+			end
+			if not nonTerminalSubtokensLength then 
+		end
+		tokenIndex = tokenIndex + TokenIndexIncrement
+		grammarIndex = grammarIndex + 1
+	end
 end
 
 function parser.parseTokens(tokens)

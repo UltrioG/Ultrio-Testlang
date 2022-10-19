@@ -1,8 +1,8 @@
--- --[[
+-- -- --[[
 
--- REMEMBER TO CHECK THE GITHUB PAGE!!!
+-- -- REMEMBER TO CHECK THE GITHUB PAGE!!!
 
--- --]]
+-- -- --]]
 local tok = require("tokenizer")
 local par = require("parser")
 local err = require("error_handler")
@@ -50,4 +50,4 @@ print(
 
 -- Runtime
 
--- Tree test
+-- print(com.stringTable({"hi!"}, nil, "test"))
