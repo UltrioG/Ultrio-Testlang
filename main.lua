@@ -39,12 +39,13 @@ end
 local expressions = par.parseTokens(tokens)
 
 print(
+  "SEP -----",
   par.tokensFollowGrammar(
     tok.tokenizeLine([[
         for {var i = 2} {j} {i++} {var x}
     ]]),
     1,
-    {{"keyword", "for"}, {"EXP"}, {"EVAL"}, {"EXP"}, {"EXP"}}
+    par.grammar.recursive_test
   )
 )
 
