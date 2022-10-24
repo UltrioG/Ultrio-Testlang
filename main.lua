@@ -45,7 +45,7 @@ print(
         for {var i = 2} {j} {i++} {var x}
     ]]),
     1,
-    par.grammar.recursive_test
+    par.grammar.FOR
   )
 )
 

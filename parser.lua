@@ -32,16 +32,43 @@ local parser = {
   }
 }
 
+function parser.tokenIsTerminal(token)
+	return not not com.indexOf(tok.tokenTypes, token[4])
+end
+
 function parser.tokenFollowsTerminalObject(token, terminal)
-	-- Checks whether a token matches a terminal object.
-  -- If matches, return how many tokens long that object is.
+	-- Checks whether a token matches a terminal object. CHECKS CONTENT AS WELL.
+  -- If matches, return 1.
 	local result = token[4] == terminal[1]
 	if terminal[2] then result = result and terminal[2] == token[5] end
 	return result and 1 or false
 end
 
-function parser.tokensFollowGrammar(tokens, startIndex, grammar, name)
-	
+function parser.tokensFollowGrammar(tokens, startIndex, grammar)
+	local tokens = com.cloneTable(tokens)
+	local TKi = startIndex
+	local GMi = 1
+	tokens = com.subTable(tokens, TKi, #tokens)
+
+	while true do
+		local t = tokens[TKi]
+		local g = grammar[GMi]
+
+		if not (t and g) then return TKi end
+
+		local isGATerminal = parser.tokenIsTerminal(g)
+		if isGATerminal then
+			local gIsMatchingT = parser.tokenFollowsTerminalObject(t, g)
+			if not gIsMatchingT then return false end
+			GMi = GMi + 1
+		else
+			-- TODO: Fix the logic here
+			local subLength = parser.tokensFollowGrammar(com.subTable(tokens, TKi, #tokens), TKi, g)
+			if not subLength then return false end
+			GMi = GMi + subLength
+		end
+		TKi = TKi + 1
+	end
 end
 
 function parser.parseTokens(tokens)
