@@ -4,15 +4,19 @@ local err = require("error_handler")
 
 local parser = {
   grammar = {
-    EVAL = {  -- Any value will be considered an EVAL
+		SUFFIX_OP = {
+			{{"identifier"}, {"operator", "++"}},
+			{{"identifier"}, {"operator", "--"}},
+		},
+    EVAL = {  -- Any "value" will be considered an EVAL
+			{{"literal"}, {"operator"}, {"EVAL"}},
+			{{"identifier"}, {"operator"}, {"EVAL"}},
       {{"literal"}},
       {{"identifier"}},
-      {{"EVAL"}, {"operator"}, {"EVAL"}},
-      {{"EVAL"}, {"separator", ","}, {"EVAL"}}
-    },
+		},
     WRAPPED_EVAL = {
       {{"separator", "{"}, {"EVAL"}, {"separator", "}"}},
-      {{"separator", "("}, {"EVAL"}, {"separator", ")"}}
+      {{"separator", "("}, {"EVAL"}, {"separator", ")"}},
     },
     VAR_DECLARE = {
       {{"keyword", "var"}, {"identifier"}, {"operator", "="}, {"EVAL"}},
@@ -25,9 +29,10 @@ local parser = {
       {{"identifier"}, {"separator", "("}, {"EVAL"}, {"separator", ")"}}
     },
     EXP = {
+      {{"separator", "{"}, {"EXP"}, {"separator", "}"}},
+			{{"SUFFIX_OP"}},
       {{"VAR_DECLARE"}},
       {{"FOR"}},
-      {{"separator", "{"}, {"EXP"}, {"separator", "}"}},
     }
   }
 }
@@ -56,16 +61,15 @@ function parser.tokensFollowGrammarRule(tokens, startIndex, grammarRule)
 	local tokens = com.cloneTable(tokens)
 	local grammar = com.cloneTable(grammarRule)
 	local TKi = startIndex
+	local length = 0
 	local GMi = 1
 	local dT = 1
 	
 	while true do
 		local t = tokens[TKi]
 		local g = grammar[GMi]
-
-		print(t, g)
 		
-		if not g then return TKi end
+		if not g then return length end
 		if not t then return false end
 		
 		com.printTable(t, nil, "t")
@@ -75,12 +79,14 @@ function parser.tokensFollowGrammarRule(tokens, startIndex, grammarRule)
 			local termMatchResult = parser.tokenFollowsTerminalObject(t, g)
 			print("TMR:", termMatchResult)
 			if not termMatchResult then return false end
+			length = length + 1
 			dT = 1
 		else
 			print("Is not terminal.")
 			local subparseResult = parser.tokensFollowGrammarRuleset(tokens, TKi, parser.grammar[g[1]])
 			print(g[1], subparseResult)
 			if not subparseResult then return false end
+			length = length + subparseResult
 			dT = subparseResult
 		end
 		TKi = TKi + dT
@@ -90,18 +96,15 @@ end
 
 function parser.tokensFollowGrammarRuleset(tokens, startIndex, grammar)
 	local ret = false
-	for _, grammarRule in pairs(grammar) do
+	for i, grammarRule in pairs(grammar) do
 		ret = ret or parser.tokensFollowGrammarRule(tokens, startIndex, grammarRule)
-		if ret then break end
+		if not not ret then break end
 	end
 	return ret
 end
 
 function parser.parseTokens(tokens)
-  local expressions = com.cloneTable(tokens)
-  for i, v in ipairs(expressions) do
-    
-  end
+
 end
 
 return parser

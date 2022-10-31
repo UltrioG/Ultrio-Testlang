@@ -41,11 +41,9 @@ local expressions = par.parseTokens(tokens)
 print(
   "SEP -----",
   par.tokensFollowGrammarRuleset(
-    tok.tokenizeLine([[
-        for {var i = 2} {j} {i++} {var x}
-    ]]),
+    tokens,
     1,
-    par.grammar.FOR
+    par.grammar.EXP
   )
 )
 

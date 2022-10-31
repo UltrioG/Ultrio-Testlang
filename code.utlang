@@ -1,15 +1,5 @@
-/*
-  Fizzbuzz program written in what is possibly the worst language ever
+var j = 100
 
-  For testing parsing and execution.
-*/
+for {var i = 1} {i <= j} {i++} {
 
-for {var i = 1}{i <= 100}{i++} {
-  var output = ""
-  if (i%3==0) {output += "Fizz"}
-  if (i%5==0) {output += "Buzz"}
-
-	if (output == "") {output = i}
-
-  print(output)
 }
