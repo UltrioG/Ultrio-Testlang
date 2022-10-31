@@ -40,7 +40,7 @@ local expressions = par.parseTokens(tokens)
 
 print(
   "SEP -----",
-  par.tokensFollowGrammar(
+  par.tokensFollowGrammarRuleset(
     tok.tokenizeLine([[
         for {var i = 2} {j} {i++} {var x}
     ]]),

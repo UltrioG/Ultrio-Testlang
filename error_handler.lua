@@ -4,6 +4,7 @@ local handler = {
     "SyntaxError",
     "ParsingError",
     "RuntimeError",
+		"ArgumentError"
   },
   fatalFlavor = {
     "Ow, that kinda hurt.",

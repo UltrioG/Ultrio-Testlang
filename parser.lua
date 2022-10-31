@@ -35,6 +35,9 @@ local parser = {
 function parser.tokenIsTerminal(token)
 	return not not com.indexOf(tok.tokenTypes, token[4])
 end
+function parser.grammarUnitIsTerminal(g)
+	return not not com.indexOf(tok.tokenTypes, g[1])
+end
 
 function parser.tokenFollowsTerminalObject(token, terminal)
 	-- Checks whether a token matches a terminal object. CHECKS CONTENT AS WELL.
@@ -44,31 +47,51 @@ function parser.tokenFollowsTerminalObject(token, terminal)
 	return result and 1 or false
 end
 
-function parser.tokensFollowGrammar(tokens, startIndex, grammar)
+function parser.tokensFollowGrammarRule(tokens, startIndex, grammarRule)
+	if (not grammarRule) or com.tableEquality(grammarRule, {}) then
+		err:fatal(5, "Attempted to test if a set of tokens follow no grammar.")
+	end
+	
 	local tokens = com.cloneTable(tokens)
+	local grammar = com.cloneTable(grammarRule)
 	local TKi = startIndex
 	local GMi = 1
-	tokens = com.subTable(tokens, TKi, #tokens)
+	local dT = 1
 
 	while true do
 		local t = tokens[TKi]
 		local g = grammar[GMi]
 
-		if not (t and g) then return TKi end
-
-		local isGATerminal = parser.tokenIsTerminal(g)
-		if isGATerminal then
-			local gIsMatchingT = parser.tokenFollowsTerminalObject(t, g)
-			if not gIsMatchingT then return false end
-			GMi = GMi + 1
+		com.printTable(t, nil, "t")
+		com.printTable(g, nil, "g")
+		
+		if not g then return TKi end
+		if not t then return false end
+		
+		if parser.grammarUnitIsTerminal(g) then
+			local termMatchResult = parser.tokenFollowsTerminalObject(t, g)
+			print("TMR:", termMatchResult)
+			if not termMatchResult then return false end
+			dT = 1
 		else
-			-- TODO: Fix the logic here
-			local subLength = parser.tokensFollowGrammar(com.subTable(tokens, TKi, #tokens), TKi, g)
-			if not subLength then return false end
-			GMi = GMi + subLength
+			print("Is not terminal.")
+			local subparseResult = parser.tokensFollowGrammarRuleset(tokens, TKi, parser.grammar[g[1]])
+			print(g[1], subparseResult)
+			if not subparseResult then return false end
+			dT = subparseResult
 		end
-		TKi = TKi + 1
+		TKi = TKi + dT
+		GMi = GMi + 1
 	end
+end
+
+function parser.tokensFollowGrammarRuleset(tokens, startIndex, grammar)
+	local ret = false
+	for _, grammarRule in pairs(grammar) do
+		ret = ret or parser.tokensFollowGrammarRule(tokens, startIndex, grammarRule)
+		if ret then break end
+	end
+	return ret
 end
 
 function parser.parseTokens(tokens)
