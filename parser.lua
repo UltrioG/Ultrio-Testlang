@@ -48,6 +48,7 @@ function parser.tokenFollowsTerminalObject(token, terminal)
 end
 
 function parser.tokensFollowGrammarRule(tokens, startIndex, grammarRule)
+	
 	if (not grammarRule) or com.tableEquality(grammarRule, {}) then
 		err:fatal(5, "Attempted to test if a set of tokens follow no grammar.")
 	end
@@ -57,16 +58,18 @@ function parser.tokensFollowGrammarRule(tokens, startIndex, grammarRule)
 	local TKi = startIndex
 	local GMi = 1
 	local dT = 1
-
+	
 	while true do
 		local t = tokens[TKi]
 		local g = grammar[GMi]
 
-		com.printTable(t, nil, "t")
-		com.printTable(g, nil, "g")
+		print(t, g)
 		
 		if not g then return TKi end
 		if not t then return false end
+		
+		com.printTable(t, nil, "t")
+		com.printTable(g, nil, "g")
 		
 		if parser.grammarUnitIsTerminal(g) then
 			local termMatchResult = parser.tokenFollowsTerminalObject(t, g)
