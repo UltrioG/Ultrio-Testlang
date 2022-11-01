@@ -4,15 +4,17 @@ local err = require("error_handler")
 
 local parser = {
   grammar = {
+		VAL = {
+			{{"identifier"}},
+			{{"literal"}},
+		},
 		SUFFIX_OP = {
 			{{"identifier"}, {"operator", "++"}},
 			{{"identifier"}, {"operator", "--"}},
 		},
     EVAL = {  -- Any "value" will be considered an EVAL
-			{{"literal"}, {"operator"}, {"EVAL"}},
-			{{"identifier"}, {"operator"}, {"EVAL"}},
-      {{"literal"}},
-      {{"identifier"}},
+			{{"VAL"}, {"operator"}, {"EVAL"}},
+      {{"VAL"}},
 		},
     WRAPPED_EVAL = {
       {{"separator", "{"}, {"EVAL"}, {"separator", "}"}},
@@ -29,6 +31,7 @@ local parser = {
       {{"identifier"}, {"separator", "("}, {"EVAL"}, {"separator", ")"}}
     },
     EXP = {
+      {{"separator", "{"}, {"separator", "}"}},
       {{"separator", "{"}, {"EXP"}, {"separator", "}"}},
 			{{"SUFFIX_OP"}},
       {{"VAR_DECLARE"}},
@@ -53,7 +56,6 @@ function parser.tokenFollowsTerminalObject(token, terminal)
 end
 
 function parser.tokensFollowGrammarRule(tokens, startIndex, grammarRule)
-	
 	if (not grammarRule) or com.tableEquality(grammarRule, {}) then
 		err:fatal(5, "Attempted to test if a set of tokens follow no grammar.")
 	end
@@ -72,19 +74,25 @@ function parser.tokensFollowGrammarRule(tokens, startIndex, grammarRule)
 		if not g then return length end
 		if not t then return false end
 		
-		com.printTable(t, nil, "t")
-		com.printTable(g, nil, "g")
+		local formattedT = tok.keyifyToken(t)
+		
+		-- print(("Checking whether %s:%s matches with %s%s."):format(
+		-- 		formattedT.tokenContent,
+		-- 		formattedT.tokenType,
+		-- 		g[1],
+		-- 		g[2] and "("..g[2]..")" or ""
+		-- 	))
 		
 		if parser.grammarUnitIsTerminal(g) then
 			local termMatchResult = parser.tokenFollowsTerminalObject(t, g)
-			print("TMR:", termMatchResult)
+			-- print(not not termMatchResult)
 			if not termMatchResult then return false end
 			length = length + 1
 			dT = 1
 		else
-			print("Is not terminal.")
+			-- print(("%s is not a terminal, recursing."):format(g[1]))
 			local subparseResult = parser.tokensFollowGrammarRuleset(tokens, TKi, parser.grammar[g[1]])
-			print(g[1], subparseResult)
+			-- print(g[1], subparseResult)
 			if not subparseResult then return false end
 			length = length + subparseResult
 			dT = subparseResult

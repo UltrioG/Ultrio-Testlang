@@ -111,10 +111,11 @@ function tokenizer.tokenizeLine(line, lineCount, inComment)
     return {}, true
   end
   local tokens = {}
+	proxyLine = proxyLine.." "
   
   for tokenType, matchGroup in pairs(tokenizer.tokens) do
     for matchType, matchSet in pairs(matchGroup) do
-      for _, matchString in pairs(matchSet) do
+      for _, matchString in ipairs(matchSet) do
         local litMatch = matchType == "literal"
         local first = 0
         local last = 0
@@ -131,17 +132,26 @@ function tokenizer.tokenizeLine(line, lineCount, inComment)
             tokens, {
               first, last, lineCount, tokenType, match or proxyLine:sub(first, last)
             }
-          )
+					)
         end
       end
     end
   end
   
   table.sort(tokens, function(a, b)
-      -- TODO: Account for tokens in different positions on the same line
       return a[1] < b[1]
     end)
-  
+
+	local removed = 0
+	
+	for i = 1, #tokens do
+		if tokens[i+1] == nil then break end
+		if tokens[i][2] == tokens[i+1][2] then
+			table.remove(tokens, i-removed)
+			removed = removed + 1
+		end
+	end
+	
   return tokens, false
 end
 
