@@ -111,7 +111,7 @@ function tokenizer.tokenizeLine(line, lineCount, inComment)
     return {}, true
   end
   local tokens = {}
-	proxyLine = proxyLine.." "
+	proxyLine = " "..proxyLine.." "
   
   for tokenType, matchGroup in pairs(tokenizer.tokens) do
     for matchType, matchSet in pairs(matchGroup) do
