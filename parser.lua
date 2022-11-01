@@ -1,6 +1,7 @@
 local com = require("common")
 local tok = require("tokenizer")
 local err = require("error_handler")
+local Tree = require("tree")
 
 local parser = {
   grammar = {
@@ -111,8 +112,48 @@ function parser.tokensFollowGrammarRuleset(tokens, startIndex, grammar)
 	return ret
 end
 
-function parser.parseTokens(tokens)
+function parser.nodifyTokens(tokens, grammarName, startIndex)
+  local node = Tree:new(256):set(grammarName)
+  local length = parser.tokensFollowGrammarRuleset(tokens, 1, parser.grammar[grammarName])
+  local children = 0
 
+  err:assert(length, 3, "Cannot nodify tokens not following given grammar!")
+  
+  for i = startIndex or 1, length do
+    local t = tokens[i]
+    if parser.tokenIsTerminal(t) then
+      return Tree:new(1):set(t)
+    else
+      local branch
+      for grammarName, ruleset in pairs(parser.grammar) do
+        if parser.tokensFollowGrammarRuleset(con.subTable(tokens, i, i+length-1), 1, ruleset) then
+          branch = parser.nodifyTokens(tokens, grammarName, i)
+        end
+      end
+      err:assert(branch, 3, "Cannot nodify tokens not following given grammar!")
+      branch:move(node, children)
+      children = children + 1
+    end
+  end
+
+  return node
+end
+
+function parser.parseTokens(tokens)
+  local tokens = com.cloneTable(tokens)
+  local AST = Tree:new(256)
+  
+  while #tokens > 0 do
+    local node = Tree:new(256):set("EXP")
+    local expLength = parser.tokensFollowGrammarRuleset(tokens, 1, parser.grammar.EXP)
+  
+    for grammarName, ruleset in pairs(parser.grammar) do
+      if parser.tokensFollowGrammarRuleset(con.subTable(tokens, 1, expLength), 1, ruleset) then
+        local node = Tree:new(256):set(grammarName)
+        
+      end
+    end
+  end
 end
 
 return parser
