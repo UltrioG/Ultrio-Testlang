@@ -112,48 +112,79 @@ function parser.tokensFollowGrammarRuleset(tokens, startIndex, grammar)
 	return ret
 end
 
-function parser.nodifyTokens(tokens, grammarName, startIndex)
-  local node = Tree:new(256):set(grammarName)
-  local length = parser.tokensFollowGrammarRuleset(tokens, 1, parser.grammar[grammarName])
-  local children = 0
+function parser.createASTBranch(tokens, startIndex, grammarName, grammarRule, leaves)
+  --[[
+    Each node has the following structure:
+    {
+      isTerminal: boolean,
+      unitName: string
+    }
+  ]]
+  local tokens = com.cloneTable(tokens)
+  local branch = Tree:new(#grammarRule, {not parser.grammar[grammarName], grammarName})
+  local leaves = leaves or 0
+  err:assert(
+    parser.tokensFollowGrammarRule(tokens, startIndex, grammarRule),
+    3,
+    "Cannot create an AST branch with mismatched grammar!"
+  )
 
-  err:assert(length, 3, "Cannot nodify tokens not following given grammar!")
-  
-  for i = startIndex or 1, length do
-    local t = tokens[i]
-    if parser.tokenIsTerminal(t) then
-      return Tree:new(1):set(t)
+  for i, grammarUnit in ipairs(grammarRule) do
+    if parser.grammarUnitIsTerminal(grammarUnit) then
+      local leaf = Tree:new(1, {true, grammarUnit[1], startIndex + i - 1})
+      leaf:move(branch, i)
+      leaves = leaves + 1
     else
-      local branch
-      for grammarName, ruleset in pairs(parser.grammar) do
-        if parser.tokensFollowGrammarRuleset(con.subTable(tokens, i, i+length-1), 1, ruleset) then
-          branch = parser.nodifyTokens(tokens, grammarName, i)
-        end
-      end
-      err:assert(branch, 3, "Cannot nodify tokens not following given grammar!")
-      branch:move(node, children)
-      children = children + 1
+      local subRuleset = parser.grammar[grammarUnit[1]]
+      local subbranch, subleaves = parser.createASTBranchFromRuleset(
+        tokens, startIndex + i - 1, grammarUnit[1], subRuleset
+      )
+      if not subbranch then return false, 0 end
+      subbranch:move(branch, i)
+      leaves = leaves + subleaves
     end
   end
 
-  return node
+  return branch, leaves
+end
+
+function parser.createASTBranchFromRuleset(tokens, startIndex, grammarName, grammarRuleset, leaves)
+  local tokens = com.cloneTable(tokens)
+  local branch
+  local leaves = leaves or 0
+  for i, subRule in ipairs(grammarRuleset) do
+    local length = parser.tokensFollowGrammarRule(tokens, startIndex + i - 1, subRule)
+    if length then
+      branch, leaves = parser.createASTBranch(tokens, startIndex + i - 1, grammarName, subRule)
+      break
+    end
+  end
+
+  return branch, leaves
 end
 
 function parser.parseTokens(tokens)
   local tokens = com.cloneTable(tokens)
   local AST = Tree:new(256)
+  local i = 1
+  local expCounter = 1
+  local finished = false
   
   while #tokens > 0 do
-    local node = Tree:new(256):set("EXP")
-    local expLength = parser.tokensFollowGrammarRuleset(tokens, 1, parser.grammar.EXP)
-  
-    for grammarName, ruleset in pairs(parser.grammar) do
-      if parser.tokensFollowGrammarRuleset(con.subTable(tokens, 1, expLength), 1, ruleset) then
-        local node = Tree:new(256):set(grammarName)
-        
-      end
-    end
+    local expBranch, leaves = parser.createASTBranchFromRuleset(tokens, i, "Expression", parser.grammar.EXP)
+    err:assert(expBranch == nil or expBranch == false, 2, "Unfinished expression found!")
+    if expBranch == nil or expBranch == false then break end
+    expBranch:move(AST, expCounter)
+    i = i + leaves
+
+    if i - 1 == #tokens then finished = true break end
   end
+  err:assert(finished, 3,
+    ("Unfinished parsing! Diagnostics data: (i, eC, fin) = (%i, %i, %s)"):format(
+      i, expCounter, tostring(finished)
+    )
+  )
+  return AST
 end
 
 return parser

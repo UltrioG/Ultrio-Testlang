@@ -8,6 +8,8 @@ local par = require("parser")
 local err = require("error_handler")
 local com = require("common")
 
+math.randomseed(os.time())
+
 local fileName = --[[io.read("*l")]] "code.utlang"
 local handle = assert(io.open(fileName, "r"))
 
