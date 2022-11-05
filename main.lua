@@ -7,6 +7,7 @@ local tok = require("tokenizer")
 local par = require("parser")
 local err = require("error_handler")
 local com = require("common")
+local tree = require("tree")
 
 math.randomseed(os.time())
 
@@ -37,17 +38,12 @@ for _, v in ipairs(tokens) do
   table.insert(tokenValues, v[5])
 end
 
--- Parsing
-local expressions = par.parseTokens(tokens)
+com.printTable(tokens)
 
-print(
-  "SEP -----",
-  par.tokensFollowGrammarRuleset(
-    tokens,
-    1,
-    par.grammar.EXP
-  )
-)
+-- Parsing
+-- local expressions = par.parseTokens(tokens)
+
+local parseTree = par.parseTokens(tokens)
 
 -- Runtime
 

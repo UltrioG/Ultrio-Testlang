@@ -1,5 +1,1 @@
-var j = 1
-
-for {var i = 1} {i <= j} {i++} {
-
-}
+var jk = 10000

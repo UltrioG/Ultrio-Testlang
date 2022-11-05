@@ -81,6 +81,7 @@ function mod.subTable(t, i, j)
 end
 
 function mod.tableEquality(t1, t2)
+  if #t1 ~= #t2 then return false end
   for k, v1 in pairs(t1) do
     if not t2[k] then return false end
     if type(v1) == "table" and type(t2[k]) == "table" then
@@ -89,6 +90,10 @@ function mod.tableEquality(t1, t2)
     if v1 ~= t2[k] then return false end
   end
   return true
+end
+
+function mod.falsify(v)
+  return (v == false or v == nil or mod.tableEquality(v, {}))
 end
 
 return mod
