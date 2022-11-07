@@ -65,10 +65,6 @@ local tokenizer = {
       literal = {},
       pattern = {
         "[^%w_\"']([%a_][%w_]-)[^%w_\"']",
-        "^([%a_][%w_]-)[^%w_\"']",
-        "[^%w_\"']([%a_][%w_]-)$",
-        "^([%a_][%w_]-)$",
-        "[^%w_\"']([%a_])[^%w_\"']"
       }
     },
   },
@@ -102,6 +98,7 @@ function tokenizer.isSpecialWord(word)
   for _, v in ipairs(tokenizer.tokens.literal.pattern) do
     if word:find(v) then return true end
   end
+	return false
 end
 
 function tokenizer.tokenizeLine(line, lineCount, inComment)
@@ -125,14 +122,17 @@ function tokenizer.tokenizeLine(line, lineCount, inComment)
           if not first then break end
           if match and not litMatch then
             first, last = proxyLine:find(match, first, true)
-          end
+					end
           if litMatch then match = proxyLine:sub(first, last) end
-          if tokenType == "identifier" and tokenizer.isSpecialWord(match) then break end
-          table.insert(
-            tokens, {
-              first, last, lineCount, tokenType, match or proxyLine:sub(first, last)
-            }
-					)
+          if tokenType == "identifier" and tokenizer.isSpecialWord(match) then
+						print("cont")
+					else
+          	table.insert(
+	            tokens, {
+	              first-1, last-1, lineCount, tokenType, match or proxyLine:sub(first, last)
+	            }
+						)
+					end
         end
       end
     end
