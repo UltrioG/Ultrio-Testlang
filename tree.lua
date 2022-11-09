@@ -10,6 +10,8 @@
 -- tree[1][2][1][2]:get()       -- Returns "hi"
 ---------------------------------------------------------------------------------------------------
 
+local err = require("error_handler")
+
 local Tree = {}
 Tree.__index = Tree
 
@@ -154,6 +156,13 @@ end
 function Tree:__call(i,...)
     if not self[i] then self:newChild(i,...) end
     return self[i]
+end
+
+----------------------------------------------------------------------------------------------------
+-- Turns the tree into a human-readable format. TBA
+function Tree:__tostring()
+	local depth = 0
+	err:fatal(6)
 end
 
 ----------------------------------------------------------------------------------------------------

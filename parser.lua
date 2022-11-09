@@ -26,18 +26,30 @@ local parser = {
       {{"keyword", "var"}, {"identifier"}},
     },
     FOR = {
-      {{"keyword", "for"}, {"EXP"}, {"WRAPPED_EVAL"}, {"EXP"}, {"EXP"}}
+      {{"keyword", "for"}, {"EXP"}, {"WRAPPED_EVAL"}, {"EXP"}, {"PROGRAM"}}
     },
     FUNCTION_CALL = {
       {{"identifier"}, {"separator", "("}, {"EVAL"}, {"separator", ")"}}
     },
+		IF = {
+			{{"keyword", "if"}}
+		},
+		PROGRAM = {
+			{{"CODE_SEGMENT"}},
+		},
+		CODE_SEGMENT = {
+			{{"EXP"}, {"CODE_SEGMENT"}},
+			{{"EXP"}}
+		},
     EXP = {
       {{"separator", "{"}, {"separator", "}"}},
       {{"separator", "{"}, {"EXP"}, {"separator", "}"}},
 			{{"SUFFIX_OP"}},
       {{"VAR_DECLARE"}},
+			{{"FUNCTION_CALL"}},
+			{{"IF"}},
       {{"FOR"}},
-    }
+    },
   }
 }
 
@@ -107,7 +119,7 @@ function parser.createBranchAccordingToGrammarRule(tokens, startIndex, grammarRu
 			print(not not termMatchResult)
 			if not termMatchResult then return false, 0 end
 			length = length + 1
-      Tree:new(1, {g[1], t[5]}, branch, GMi)
+      Tree:new(1, {g[1], t[5]}):move(branch, GMi)
 			dT = 1
 		else
 			print(("%s is not a terminal, recursing."):format(g[1]))
@@ -141,28 +153,7 @@ function parser.createBranchAccordingToGrammarRuleset(tokens, startIndex, gramma
 end
 
 function parser.parseTokens(tokens)
-  local tokens = com.cloneTable(tokens)
-  local programRoot = Tree:new()
-  local index = 1
-  local expCounter = 1
-  
-  while index <= #tokens do
-    local expBranch, expLen = parser.createBranchAccordingToGrammarRuleset(
-      tokens,
-      index,
-      parser.grammar.EXP,
-      "Expression"
-    )
-    if com.falsify(expBranch) then break end
-    print(("Found an expression! Expression: %s"):format(expBranch[1]:get()))
-    expBranch:move(programRoot, expCounter)
-    expCounter = expCounter + 1
-    index = index + expLen
-  end
-
-  err:assert(index >= #tokens, 2, "Dangling tokens near EOF!")
-
-  return programRoot
+  return parser.createBranchAccordingToGrammarRuleset(tokens, 1, parser.grammar.PROGRAM, "PROGRAM")
 end
 
 return parser

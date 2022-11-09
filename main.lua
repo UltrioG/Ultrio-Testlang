@@ -44,6 +44,7 @@ com.printTable(tokens)
 -- local expressions = par.parseTokens(tokens)
 
 local parseTree = par.parseTokens(tokens)
+print(tostring(parseTree))
 
 -- Runtime
 

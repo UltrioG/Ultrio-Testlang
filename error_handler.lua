@@ -4,7 +4,8 @@ local handler = {
     "SyntaxError",
     "ParsingError",
     "RuntimeError",
-		"ArgumentError"
+		"ArgumentError",
+		"UnimplementedError"
   },
   fatalFlavor = {
     "Ow, that kinda hurt.",
@@ -19,6 +20,7 @@ local handler = {
 
 function handler:fatal(errCode, msg)
   local errCode = errCode or 1
+	local msg = msg or ""
   io.stderr:write(
     "\n\n"..self.errorCodes[errCode]..":\n"..msg
     .."\n\n{[{[( > "..self.fatalFlavor[math.random(#self.fatalFlavor)].." < )]}]}\n"
