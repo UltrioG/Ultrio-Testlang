@@ -1,3 +1,2 @@
-var maxBound = 100
-
-for {var i = 1} {i <= maxBound} {i++} {}
+var True = "true"
+var False = false

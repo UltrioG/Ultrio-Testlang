@@ -32,7 +32,8 @@ local parser = {
       {{"identifier"}, {"separator", "("}, {"EVAL"}, {"separator", ")"}}
     },
 		IF = {
-			{{"keyword", "if"}}
+			{{"keyword", "if"}, {"WRAPPED_EVAL"}, {"PROGRAM"}},
+			{{"keyword", "if"}, {"EVAL"}, {"PROGRAM"}},
 		},
 		PROGRAM = {
 			{{"CODE_SEGMENT"}},
@@ -100,10 +101,14 @@ function parser.createBranchAccordingToGrammarRule(tokens, startIndex, grammarRu
 		local t = tokens[TKi]
 		local g = grammar[GMi]
     
-		if not g then print("Out of grammar, returning...", length) return branch, length end
+		if not g then
+				print("Out of grammar, returning...", length)
+				-- print(branch)
+				return branch, length
+			end
 		if not t then return false, 0 end
 
-    print(("(GMi, TKi) = (%i, %i)"):format(GMi, TKi))
+    -- print(("(GMi, TKi) = (%i, %i)"):format(GMi, TKi))
     
 		local formattedT = tok.keyifyToken(t)
 		
@@ -149,6 +154,7 @@ function parser.createBranchAccordingToGrammarRuleset(tokens, startIndex, gramma
   		if not nilnot then break end
     end
   end
+	-- print(ret)
 	return ret, length
 end
 

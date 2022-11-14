@@ -5,7 +5,8 @@ local handler = {
     "ParsingError",
     "RuntimeError",
 		"ArgumentError",
-		"UnimplementedError"
+		"UnimplementedError",
+		"In"
   },
   fatalFlavor = {
     "Ow, that kinda hurt.",
