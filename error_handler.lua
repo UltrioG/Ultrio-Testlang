@@ -23,7 +23,8 @@ function handler:fatal(errCode, msg)
 	local msg = msg or ""
   io.stderr:write(
     "\n\n"..self.errorCodes[errCode]..":\n"..msg
-    .."\n\n{[{[( > "..self.fatalFlavor[math.random(#self.fatalFlavor)].." < )]}]}\n"
+    .."\n\n{[{[( > "..self.fatalFlavor[math.random(#self.fatalFlavor)].." < )]}]}\n\n"..
+		tostring(debug.traceback())
   )
 end
 

@@ -10,6 +10,7 @@
 -- tree[1][2][1][2]:get()       -- Returns "hi"
 ---------------------------------------------------------------------------------------------------
 
+local com = require("common")
 local err = require("error_handler")
 
 local Tree = {}
@@ -160,9 +161,27 @@ end
 
 ----------------------------------------------------------------------------------------------------
 -- Turns the tree into a human-readable format. TBA
-function Tree:__tostring()
-	local depth = 0
-	err:fatal(6)
+local function magiclines(s)
+        if s:sub(-1)~="\n" then s=s.."\n" end
+        return s:gmatch("(.-)\n")
+end
+
+function Tree.__tostring(self)
+	local retStr = ""
+	local value = self:get()
+	if type(value) == "table" then value = ("%s (%s)"):format(value[1], value[2]) end
+	retStr = value.."\n"
+	local connectStr = ""
+	for i, node in ipairs(self) do
+		if node then
+			local subStr = tostring(i)..": "..tostring(node)
+			for line in magiclines(subStr) do
+				connectStr = connectStr.."├─"..line.."\n"
+			end
+		end
+	end
+	retStr = retStr..connectStr
+	return retStr
 end
 
 ----------------------------------------------------------------------------------------------------

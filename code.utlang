@@ -1,3 +1,3 @@
 var maxBound = 100
 
-for {var i = 1} {i <= maxBound} {i++} { }
+for {var i = 1} {i <= maxBound} {i++} {}
