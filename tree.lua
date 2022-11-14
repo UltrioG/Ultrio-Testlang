@@ -170,6 +170,7 @@ function Tree.__tostring(self)
 	local retStr = ""
 	local value = self:get()
 	if type(value) == "table" then value = ("%s (%s)"):format(value[1], value[2]) end
+	if not value then value = "nil" end
 	retStr = value.."\n"
 	local connectStr = ""
 	for i, node in ipairs(self) do
