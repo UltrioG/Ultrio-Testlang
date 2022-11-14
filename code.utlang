@@ -1,16 +1,3 @@
-/* My first UTL program */
+var maxBound = 100
 
-/* fizzbuzz */
-
-for {i=1.0+0.0i}{i <= 100.0+0.0i}{i++}{
-  local str = ""
-  if i%3==0 {
-    str += "Fizz"
-  }
-  if i%5==0 {
-    str += "Buzz"
-  }
-  if str == "" {
-    str = tonumber(i)
-  }
-}
+for {var i = 1} {i <= maxBound} {i++} {}

@@ -4,8 +4,10 @@ Language design:
   There is next to no syntactical sugar.
 
   Datatypes:
-    complex: Complex numbers, the only type of numbers.
-      Notation: 0.0+0.0i; -0.0+0.0i; 0.0-0.0i; -0.0-0.0i
+    number:
+    Originally complex, it was too terrible even for me,
+    so I changed it to real numbers instead
+      Notation: 0, 1, 23, 4.56, .78
     string: A basic string of characters. All strings are multiline.
       Notation: 's'; "s"
     boolean: True or false values.
@@ -19,11 +21,11 @@ local comm = require("common")
 local tokenizer = {
   tokens = {
     keyword = {
-      literal = {"if", "while", "for", "return", "local"},
+      literal = {"if", "while", "for", "return", "var"},
       pattern = {}
     },
     separator = {
-      literal = {"{", "}", "[", "]", "(", ")"},
+      literal = {"{", "}", "[", "]", "(", ")", ","},
       pattern = {}
     },
     operator = {
@@ -48,8 +50,8 @@ local tokenizer = {
         "null",
       },
       pattern = {
-        "(%-?%d+%.%d+%s*[%+%-]%s*%d+%.%d+i)", "(%-?%d+%.%d+i%s*[%+%-]%s*%d+%.%d+)",
-        "(%b'')", '(%b"")',
+        "%D(%d+)%D", "%D(%d*%.%d+)%D",
+        "('[^']-')", '("[^"]-")',
         -- TODO: Errors on unclosed string with "'[^']*$" and '"[^"]*$'
       }
     },
@@ -62,123 +64,105 @@ local tokenizer = {
     identifier = {
       literal = {},
       pattern = {
-        "[^%w_]([%a_][%w_]-)[^%w_]"
+        "[^%w_\"']([%a_][%w_]-)[^%w_\"']",
       }
-    }
-  }
+    },
+  },
+  tokenTypes = {}    -- This table will be automatically filled
 }
 
-function tokenizer:getAllOccPos(s, sub, lit)
-  local occurences = {}
-  local first, last = 0, 0
-  local element = 0
-  while true do
-    element = element + 1
-    first, last = s:find(sub, first+1, lit)
-    if not first then break end
-    if element > 1 then
-      if occurences[element-1] then
-        if occurences[element-1][2] < first then
-          -- No repeat check
-          table.insert(occurences, {first, last})
-        end
-      end
-    else
-      table.insert(occurences, {first, last})
-    end
+tokenizer.tokenTypes = {}
+for k in pairs(tokenizer.tokens) do
+  table.insert(tokenizer.tokenTypes, k)
+end
+
+function tokenizer.removeComments(str)
+  local ret, rep = str:gsub("/%*.-%*/", "")
+  return ret, rep > 0
+end
+
+function tokenizer.hasUnclosedComment(str)
+  return string.match(str, "/%*.-$") ~= nil
+end
+function tokenizer.hasCommentClose(str)
+return string.match(str, "^.-%*/") ~= nil
+end
+
+function tokenizer.isSpecialWord(word)
+  for _, v in ipairs(tokenizer.tokens.keyword.literal) do
+    if v == word then return true end
   end
-  return occurences
-end
-
-function tokenizer:getAllOccPosAndVal(s, sub, lit)
-  local occurences = {}
-  local first, last, token = 0, 0, ""
-  local element = 0
-  while true do
-    element = element + 1
-    first, last, token = s:find(sub, first+1, lit)
-    if not first then break end
-    if element > 1 then
-      if occurences[element-1] then
-        if occurences[element-1][3] < first+1 then
-          -- No repeat check
-          table.insert(occurences, {first+1, token, last})
-          -- Add 1 because for some reason first is the character
-          -- before the first character of the match
-        end
-      end
-    else
-      table.insert(occurences, {first+1, token, last})
-    end
+  for _, v in ipairs(tokenizer.tokens.literal.literal) do
+    if v == word then return true end
   end
-  table.foreach(occurences, function(_, v) table.foreach(v, print) end)
-  return occurences
-end
-
-function tokenizer:findUnclosedString(code)
-  local code = code:gsub('%b""', ""):gsub("%b''", "")
-  local unclosedSingleQuote = code:find("'[^']*$")
-  local unclosedDoubleQuote = code:find('"[^"]*$')
-  if unclosedSingleQuote or unclosedDoubleQuote then
-    return unclosedDoubleQuote or unclosedSingleQuote
-  else
-    return nil
+  for _, v in ipairs(tokenizer.tokens.literal.pattern) do
+    if word:find(v) then return true end
   end
+	return false
 end
 
-function tokenizer:removeComment(code)
-  return code:gsub("/%*.-%*/", " ")
-end
-
-function tokenizer:removeStartEndWhites(code)
-  return code:gsub("^%s*", ""):gsub("%S%s-$","%1")
-end
-
-function tokenizer:tokenize(code, handle)
-  local code = self:removeStartEndWhites(self:removeComment(code))  -- Remove all comments
+function tokenizer.tokenizeLine(line, lineCount, inComment)
+  if inComment and not tokenizer.hasCommentClose(line) then return {}, true end
+  local proxyLine, changed = tokenizer.removeComments(line)
+  if tokenizer.hasUnclosedComment(line) and not tokenizer.hasCommentClose(line) then
+    return {}, true
+  end
+  local tokens = {}
+	proxyLine = " "..proxyLine.." "
   
-  local tokensFound = {}
-
-  local unclosedStrPos = self:findUnclosedString(code)
-  if unclosedStrPos then
-    EHand:fatal(2, ([[
-    Character %i: Unclosed string detected.
-    Code in area:
-        %s
-    ]]):format(unclosedStrPos, code:sub(unclosedStrPos-20, unclosedStrPos+20)))
-  end
-  
-  for token, contents in pairs(self.tokens) do
-    for matchType, matcher in pairs(contents) do
-      print(("Parsing %s of %s..."):format(matchType, token))
-      if matchType == "literal" then
-        for _, lit in ipairs(matcher) do
-          for _, v in ipairs(self:getAllOccPos(code, lit, true)) do
-            table.insert(tokensFound, {token, v[1], lit})
-          end
-        end
-      elseif matchType == "pattern" then
-        for _, pat in ipairs(matcher) do
-          for _, v in ipairs(self:getAllOccPosAndVal(code, pat)) do
-            
-            local isIdent = true
-            if token == "identifier" then
-              -- Check if it's a keyword
-              for _, kw in ipairs(self.tokens.keyword.literal) do
-                if kw == v[2] then isIdent = false end
-              end
-            end
-            if isIdent then table.insert(tokensFound, {token, v[1], v[2]}) end
-          end
+  for tokenType, matchGroup in pairs(tokenizer.tokens) do
+    for matchType, matchSet in pairs(matchGroup) do
+      for _, matchString in ipairs(matchSet) do
+        local litMatch = matchType == "literal"
+        local first = 0
+        local last = 0
+        local match = ""
+        while true do
+          first, last, match = proxyLine:find(matchString, last+1, litMatch)
+          if not first then break end
+          if match and not litMatch then
+            first, last = proxyLine:find(match, first, true)
+					end
+          if litMatch then match = proxyLine:sub(first, last) end
+          if tokenType == "identifier" and tokenizer.isSpecialWord(match) then
+						print("cont")
+					else
+          	table.insert(
+	            tokens, {
+	              first-1, last-1, lineCount, tokenType, match or proxyLine:sub(first, last)
+	            }
+						)
+					end
         end
       end
     end
   end
-
-  -- Sort by position
-  table.sort(tokensFound, function(a, b) return a[2] < b[2] end)
   
-  return tokensFound
+  table.sort(tokens, function(a, b)
+      return a[1] < b[1]
+    end)
+
+	local removed = 0
+	
+	for i = 1, #tokens do
+		if tokens[i+1] == nil then break end
+		if tokens[i][2] == tokens[i+1][2] then
+			table.remove(tokens, i-removed)
+			removed = removed + 1
+		end
+	end
+	
+  return tokens, false
+end
+
+function tokenizer.keyifyToken(token)
+  return {
+    first = token[1],
+    last = token[2],
+    line = token[3],
+    tokenType = token[4],
+    tokenContent = token[5]
+  }
 end
 
 return tokenizer
