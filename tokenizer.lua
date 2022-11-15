@@ -101,6 +101,24 @@ function tokenizer.isSpecialWord(word)
 	return false
 end
 
+function tokenizer.removeStringedFromTokens(tokens)
+	local stringTokens = {}
+	for i, token in ipairs(tokens) do
+		local formatted = tokenizer.keyifyToken(comm.cloneTable(token))
+		if formatted.tokenType == "literal" then
+			if formatted.tokenContent:sub(1,1) == "\"" or formatted.tokenContent:sub(1,1) == "'" then
+				table.insert(stringTokens, token.tokenContent)
+			end
+		end
+	end
+	for i, token in pairs(tokens) do
+		local formatted = tokenizer.keyifyToken(comm.cloneTable(token))
+		if not (formatted.tokenContent:sub(1,1) == "\"" or formatted.tokenContent:sub(1,1) == "'") then
+			-- TODO: Finish
+		end
+	end
+end
+
 function tokenizer.tokenizeLine(line, lineCount, inComment)
   if inComment and not tokenizer.hasCommentClose(line) then return {}, true end
   local proxyLine, changed = tokenizer.removeComments(line)
@@ -151,6 +169,8 @@ function tokenizer.tokenizeLine(line, lineCount, inComment)
 			removed = removed + 1
 		end
 	end
+
+	tokenizer.removeStringedFromTokens(tokens)
 	
   return tokens, false
 end

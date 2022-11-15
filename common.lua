@@ -5,6 +5,11 @@ function mod.indexOf(array, value)
         if v == value then
             return i
         end
+				if type(v) =="table" then
+					if mod.tableEquality(v) then
+            return i
+        	end
+				end
     end
     return nil
 end
